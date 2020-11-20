@@ -1,0 +1,13 @@
+runtime: nodejs
+env: flex
+
+env_variables:
+  # --REQUIRED--
+  DATABASE_URI: mongodb+srv://project:avinash1992@cluster0-egtfo.mongodb.net/socialApp?retryWrites=true&w=majority
+  APP_ID: myAppId
+  MASTER_KEY: master
+  SERVER_URL: http://testingparse.us-east-2.elasticbeanstalk.com/parse
+  # --OPTIONAL--
+  # FILE_KEY: <your-file-key>
+  # PARSE_MOUNT: /parse
+  # CLOUD_CODE_MAIN:

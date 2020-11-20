@@ -1,0 +1,75 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+  deploy:
+    environment:
+      AWS_ACCESS_KEY_ID: AKIAZ34SR2HT5QLEARCL
+      AWS_SECRET_ACCESS_KEY: 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
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:10.21.0
+
+      # Specify service dependencies here if necessary
+      # CircleCI maintains a library of pre-built images
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+      # - image: circleci/mongo:3.4.4
+
+    working_directory: ~/project
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run: yarn install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+      # run tests!
+      # - run: yarn run dist
+
+      - run:
+          name: Installing deployment dependencies
+          working_directory: /
+          command: |
+            python --version
+            sudo curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+            sudo python get-pip.py
+            PATH=$PATH:$HOME/.local/bin/
+            pip --version
+            sudo apt-get install python-dev
+            sudo pip install awsebcli
+
+      - run:
+          name: Setup AWS credentials
+          command: |
+            mkdir ~/.aws && printf "[profile eb-cli]\naws_access_key_id = ${AWS_ACCESS_KEY_ID}\naws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" > ~/.aws/config
+            echo $AWS_ACCESS_KEY_ID
+            echo $AWS_SECRET_ACCESS_KEY
+      - run:
+          name: Deploy to Elastic Beanstalk
+          command: |
+            # eb deploy Storetestingapp-env
+            if [ "${CIRCLE_BRANCH}" == "Production" ]; then
+              eb deploy hyperlocal-prod
+            fi
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              eb deploy Storetestingapp-env
+            fi
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - deploy
